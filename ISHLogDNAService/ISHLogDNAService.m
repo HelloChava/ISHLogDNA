@@ -224,7 +224,7 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
     [[self sharedInstance] logMessages:messages];
 }
 
-- (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages {
+- (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages withErrorHandler:(void (^)(NSError * _Nullable error))errorHandler {
     NSParameterAssert(messages);
 
     if (!self.enabled || !messages.count) {
@@ -284,6 +284,7 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
             if (httpResponse.statusCode != 200) {
                 NSLog(@"Failed to log message (statuscode %@): %@\n%@", @(httpResponse.statusCode), url, messagesAsDictionaries);
+                errorHandler(error);
             }
         }];
 

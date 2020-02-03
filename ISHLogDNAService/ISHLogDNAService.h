@@ -133,7 +133,7 @@ typedef NS_ENUM(NSUInteger, ISHLogDNALevel) {
 /**
  *   Sends an array of log messages to LogDNA. Make sure to setup the service before calling this method.
  */
-+ (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages;
++ (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages withErrorHandler:(void (^)(NSError * _Nullable error))errorHandler;
 
 /**
  *   Log messages are only sent to the server if the service is enabled and will silently be ignored otherwise.
