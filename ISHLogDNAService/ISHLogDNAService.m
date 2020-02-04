@@ -284,8 +284,8 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
             if (httpResponse.statusCode != 200) {
                 NSLog(@"Failed to log message (statuscode %@): %@\n%@", @(httpResponse.statusCode), url, messagesAsDictionaries);
-                errorHandler(error);
             }
+            errorHandler(error);
         }];
 
     [task resume];
