@@ -12,6 +12,7 @@
 #if TARGET_OS_IOS || TARGET_OS_TV
 @import AdSupport;
 #endif
+NSString * const ISHLogDnaErrorDomain = @"logdna.domain";
 
 NSString * const ISHLogDNAServiceKeyBundleShortVersion = @"version";
 NSString * const ISHLogDNAServiceKeyBundleVersion = @"build";
@@ -219,15 +220,16 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
     return [NSURL URLWithString:url];
 }
 
-+ (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages {
++ (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages withErrorHandler:(void (^)(NSError * _Nullable error))errorHandler {
     NSParameterAssert([[self sharedInstance] ingestionKey]);
-    [[self sharedInstance] logMessages:messages];
+    [[self sharedInstance] logMessages:messages withErrorHandler:errorHandler];
 }
 
 - (void)logMessages:(NSArray<ISHLogDNAMessage *> *)messages withErrorHandler:(void (^)(NSError * _Nullable error))errorHandler {
     NSParameterAssert(messages);
 
     if (!self.enabled || !messages.count) {
+        errorHandler([NSError errorWithDomain:ISHLogDnaErrorDomain code:0 userInfo:nil]);
         return;
     }
 
@@ -251,6 +253,7 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
     if (encodingError) {
         NSLog(@"Could not encode log message: %@, error: %@", boxedMessages, encodingError);
+        errorHandler(encodingError);
         return;
     }
 
@@ -259,6 +262,7 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
     if (!url) {
         NSLog(@"Failed to create base URL. Invalid host? %@", self.hostName);
+        errorHandler([NSError errorWithDomain:ISHLogDnaErrorDomain code:0 userInfo:nil]);
         return;
     }
 
@@ -277,6 +281,7 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
     NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *_Nullable data, NSURLResponse *_Nullable response, NSError *_Nullable error) {
             if (![response isKindOfClass:[NSHTTPURLResponse class]]) {
+                errorHandler([NSError errorWithDomain:ISHLogDnaErrorDomain code:0 userInfo:nil]);
                 return;
             }
 
@@ -284,8 +289,10 @@ NSString *NSStringFromLogDNALevel(ISHLogDNALevel level) {
 
             if (httpResponse.statusCode != 200) {
                 NSLog(@"Failed to log message (statuscode %@): %@\n%@", @(httpResponse.statusCode), url, messagesAsDictionaries);
+                errorHandler([NSError errorWithDomain:ISHLogDnaErrorDomain code:0 userInfo:nil]);
+                return;
             }
-            errorHandler(error);
+            errorHandler(nil);
         }];
 
     [task resume];

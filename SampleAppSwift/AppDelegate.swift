@@ -19,7 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ISHLogDNAService.setup(withIngestionKey: "...", hostName: "sample-app", appName: "swift")
 
         let message = ISHLogDNAMessage(line: "Sample app started", level: .error, meta: [ "myField" : 42 ])
-        ISHLogDNAService.logMessages([message]);
+        ISHLogDNAService.logMessages([message]) { error in
+            print("Error: \(error)")
+        }
         return true
     }
 
